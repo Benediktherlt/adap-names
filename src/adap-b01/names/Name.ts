@@ -20,7 +20,11 @@ export class Name {
 
     /** Expects that all Name components are properly masked */
     constructor(other: string[], delimiter?: string) {
-        throw new Error("needs implementation or deletion");
+        // simple copy of the array so it doesnt get changed from outside
+        this.components = [...other];
+        if (delimiter) {
+            this.delimiter = delimiter;
+        }
     }
 
     /**
@@ -29,7 +33,8 @@ export class Name {
      * Users can vary the delimiter character to be used
      */
     public asString(delimiter: string = this.delimiter): string {
-        throw new Error("needs implementation or deletion");
+        // just join the parts with the right delimiter. easy enough
+        return this.components.join(delimiter);
     }
 
     /** 
@@ -38,35 +43,52 @@ export class Name {
      * The control characters in the data string are the default characters
      */
     public asDataString(): string {
-        throw new Error("needs implementation or deletion");
+        // always use the default one here as the doc says
+        return this.components.join(DEFAULT_DELIMITER);
     }
 
     public getComponent(i: number): string {
-        throw new Error("needs implementation or deletion");
+        // simple getter, but need to check the index first
+        if (i < 0 || i >= this.components.length) {
+            throw new Error("Index out of bounds");
+        }
+        return this.components[i];
     }
 
     /** Expects that new Name component c is properly masked */
     public setComponent(i: number, c: string): void {
-        throw new Error("needs implementation or deletion");
+        // gotta check the bounds here too
+        if (i < 0 || i >= this.components.length) {
+            throw new Error("Index out of bounds");
+        }
+        this.components[i] = c;
     }
 
      /** Returns number of components in Name instance */
      public getNoComponents(): number {
-        throw new Error("needs implementation or deletion");
+        return this.components.length;
     }
 
     /** Expects that new Name component c is properly masked */
     public insert(i: number, c: string): void {
-        throw new Error("needs implementation or deletion");
+        // splice is perfect for this, inserts at index i
+        if (i < 0 || i > this.components.length) {
+            throw new Error("Index out of bounds");
+        }
+        this.components.splice(i, 0, c);
     }
 
     /** Expects that new Name component c is properly masked */
     public append(c: string): void {
-        throw new Error("needs implementation or deletion");
+        // push is the easiest way to add at the end
+        this.components.push(c);
     }
 
     public remove(i: number): void {
-        throw new Error("needs implementation or deletion");
+        if (i < 0 || i >= this.components.length) {
+            throw new Error("Index out of bounds");
+        }
+        // also using splice here to remove one element
+        this.components.splice(i, 1);
     }
-
 }
