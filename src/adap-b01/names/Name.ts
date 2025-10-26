@@ -33,8 +33,18 @@ export class Name {
      * Users can vary the delimiter character to be used
      */
     public asString(delimiter: string = this.delimiter): string {
-        // just join the parts with the right delimiter. easy enough
-        return this.components.join(delimiter);
+        // we need to actively un-escape here
+        // create a new array with the unmasked components
+        const unmaskedComponents = this.components.map(component => {
+            // first, replace the escaped delimiter (e.g., "\.") with the delimiter itself (".")
+            // then, replace the escaped escape char ("\\") with the escape char ("\")
+            const escapedDelimiter = ESCAPE_CHARACTER + this.delimiter;
+            const escapedEscapeChar = ESCAPE_CHARACTER + ESCAPE_CHARACTER;
+
+            return component.replaceAll(escapedDelimiter, this.delimiter)
+                            .replaceAll(escapedEscapeChar, ESCAPE_CHARACTER);
+        });
+        return unmaskedComponents.join(delimiter);
     }
 
     /** 
