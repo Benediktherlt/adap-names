@@ -4,50 +4,61 @@ export class ObjFile implements File {
 
     protected data: Object[] = [];
     protected length: number = 0;
+    // core of this class, track if its open or not
+    private _isOpen: boolean = false;
 
     public isEmpty(): boolean {
       return this.length == 0;
     }
 
     public isOpen(): boolean {
-      throw new Error("incomplete example code");
+      return this._isOpen;
     }
   
     public isClosed(): boolean {
-        throw new Error("incomplete example code");
+        return !this._isOpen;
     }
   
     public open(): void {
       this.assertIsClosedFile();
-      throw new Error("incomplete example code");
+      this._isOpen = true;
     }
 
     public read(): Object[] {
       this.assertIsOpenFile();
-      throw new Error("incomplete example code");
+      // return a copy so the original cant be changed from outside
+      return [...this.data];
     }
 
     public write(data: Object[]): void {
       this.assertIsOpenFile();
-      throw new Error("incomplete example code");
+      // make a copy of the new data and update length
+      this.data = [...data];
+      this.length = data.length;
     }
   
     public close(): void {
       this.assertIsOpenFile();
-      throw new Error("incomplete example code");
+      // just set the state back to closed
+      this._isOpen = false;
     }
 
     public delete(): void {
       this.assertIsClosedFile();
-      throw new Error("incomplete example code");
+      // wipe everything clean
+      this.data = [];
+      this.length = 0;
     }
 
     protected assertIsOpenFile(): void {
-        throw new Error("incomplete example code");
+        if (!this.isOpen()) {
+            throw new Error("File is not open.");
+        }
     }
 
     protected assertIsClosedFile(): void {
-        throw new Error("incomplete example code");
+        if (!this.isClosed()) {
+            throw new Error("File is not closed.");
+        }
     }
-
 }

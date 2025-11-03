@@ -8,51 +8,121 @@ export class StringName implements Name {
     protected noComponents: number = 0;
 
     constructor(source: string, delimiter?: string) {
-        throw new Error("needs implementation or deletion");
+        this.name = source;
+        if (delimiter) {
+            this.delimiter = delimiter;
+        }
+        // calculate number of components once at the beginning
+        this.updateComponentCount();
     }
 
+    // helper to split the string into components, respecting escaped delimiters
+    private getComponentsAsArray(): string[] {
+        if (this.name === "") {
+            return [];
+        }
+        // this regex is splits by the delimiter unless it's escaped
+        const regex = new RegExp(`(?<!\\\\)${this.delimiter.replace('.', '\\.')}`);
+        return this.name.split(regex);
+    }
+
+    // helper to update the cached component count
+    private updateComponentCount(): void {
+        if (this.name === "") {
+            this.noComponents = 0;
+        } else {
+            this.noComponents = this.getComponentsAsArray().length;
+        }
+    }
+    // same as in b01 
     public asString(delimiter: string = this.delimiter): string {
-        throw new Error("needs implementation or deletion");
+        const components = this.getComponentsAsArray();
+        
+        const unmaskedComponents = components.map(component => {
+            const escapedDelimiter = ESCAPE_CHARACTER + this.delimiter;
+            const escapedEscapeChar = ESCAPE_CHARACTER + ESCAPE_CHARACTER;
+
+            return component.replaceAll(escapedDelimiter, this.delimiter)
+                            .replaceAll(escapedEscapeChar, ESCAPE_CHARACTER);
+        });
+
+        return unmaskedComponents.join(delimiter);
     }
 
     public asDataString(): string {
-        throw new Error("needs implementation or deletion");
+        // if the internal delimiter is the default
+        if (this.delimiter === DEFAULT_DELIMITER) {
+            return this.name;
+        }
+        // otherwise, gotta parse and re-join
+        const components = this.getComponentsAsArray();
+        return components.join(DEFAULT_DELIMITER);
     }
 
     public getDelimiterCharacter(): string {
-        throw new Error("needs implementation or deletion");
+        return this.delimiter;
     }
 
     public isEmpty(): boolean {
-        throw new Error("needs implementation or deletion");
+        return this.noComponents === 0;
     }
 
     public getNoComponents(): number {
-        throw new Error("needs implementation or deletion");
+        return this.noComponents;
     }
 
-    public getComponent(x: number): string {
-        throw new Error("needs implementation or deletion");
+    public getComponent(i: number): string {
+        // parse this thing every time
+        const components = this.getComponentsAsArray();
+        if (i < 0 || i >= components.length) {
+            throw new Error("Index out of bounds");
+        }
+        return components[i];
     }
 
-    public setComponent(n: number, c: string): void {
-        throw new Error("needs implementation or deletion");
+    public setComponent(i: number, c: string): void {
+        const components = this.getComponentsAsArray();
+        if (i < 0 || i >= components.length) {
+            throw new Error("Index out of bounds");
+        }
+        components[i] = c;
+        this.name = components.join(this.delimiter);
+        // no need to update count, it stays the same
     }
 
-    public insert(n: number, c: string): void {
-        throw new Error("needs implementation or deletion");
+    public insert(i: number, c: string): void {
+        const components = this.getComponentsAsArray();
+        if (i < 0 || i > components.length) {
+            throw new Error("Index out of bounds");
+        }
+        components.splice(i, 0, c);
+        this.name = components.join(this.delimiter);
+        this.updateComponentCount();
     }
 
     public append(c: string): void {
-        throw new Error("needs implementation or deletion");
+        if (this.isEmpty()) {
+            this.name = c;
+        } else {
+            this.name += this.delimiter + c;
+        }
+        this.updateComponentCount();
     }
 
-    public remove(n: number): void {
-        throw new Error("needs implementation or deletion");
+    public remove(i: number): void {
+        const components = this.getComponentsAsArray();
+        if (i < 0 || i >= components.length) {
+            throw new Error("Index out of bounds");
+        }
+        components.splice(i, 1);
+        this.name = components.join(this.delimiter);
+        this.updateComponentCount();
     }
 
     public concat(other: Name): void {
-        throw new Error("needs implementation or deletion");
+        // same logic as in StringArrayName, programming to the interface
+        for (let i = 0; i < other.getNoComponents(); i++) {
+            this.append(other.getComponent(i));
+        }
     }
-
 }
