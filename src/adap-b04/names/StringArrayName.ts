@@ -1,69 +1,87 @@
 import { DEFAULT_DELIMITER, ESCAPE_CHARACTER } from "../common/Printable";
 import { Name } from "./Name";
 import { AbstractName } from "./AbstractName";
+import { IllegalArgumentException } from "../common/IllegalArgumentException";
+import { InvalidStateException } from "../common/InvalidStateException";
+import { MethodFailedException } from "../common/MethodFailedException";
 
 export class StringArrayName extends AbstractName {
 
     protected components: string[] = [];
 
     constructor(source: string[], delimiter?: string) {
-        super();
-        throw new Error("needs implementation or deletion");
+        super(delimiter);
+        // precondition: source must not be null
+        IllegalArgumentException.assert(source != null, "Source cannot be null");
+        
+        this.components = [...source];
+        this.assertClassInvariant();
     }
 
     public clone(): Name {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public asString(delimiter: string = this.delimiter): string {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public asDataString(): string {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public isEqual(other: Name): boolean {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public getHashCode(): number {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public isEmpty(): boolean {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public getDelimiterCharacter(): string {
-        throw new Error("needs implementation or deletion");
+        return new StringArrayName([...this.components], this.delimiter);
     }
 
     public getNoComponents(): number {
-        throw new Error("needs implementation or deletion");
+        return this.components.length;
     }
 
     public getComponent(i: number): string {
-        throw new Error("needs implementation or deletion");
+        // precondition: index check
+        IllegalArgumentException.assert(i >= 0 && i < this.components.length, "Index out of bounds");
+        
+        return this.components[i];
     }
 
-    public setComponent(i: number, c: string) {
-        throw new Error("needs implementation or deletion");
+    public setComponent(i: number, c: string): void {
+        // precondition: index check and c check
+        IllegalArgumentException.assert(i >= 0 && i < this.components.length, "Index out of bounds");
+        IllegalArgumentException.assert(c != null, "Component cannot be null");
+
+        this.components[i] = c;
+        
+        this.assertClassInvariant();
+        // postcondition: value must be set
+        MethodFailedException.assert(this.components[i] === c, "Postcondition failed: component not set");
     }
 
-    public insert(i: number, c: string) {
-        throw new Error("needs implementation or deletion");
+    public insert(i: number, c: string): void {
+        // precondition: index can be equal to length (append) but not larger
+        IllegalArgumentException.assert(i >= 0 && i <= this.components.length, "Index out of bounds");
+        IllegalArgumentException.assert(c != null, "Component cannot be null");
+
+        const oldLength = this.components.length;
+        
+        this.components.splice(i, 0, c);
+
+        this.assertClassInvariant();
+        // postcondition: length must increase by 1
+        MethodFailedException.assert(this.components.length === oldLength + 1, "Postcondition failed: length did not increase");
     }
 
-    public append(c: string) {
-        throw new Error("needs implementation or deletion");
+    public append(c: string): void {
+        // precondition
+        IllegalArgumentException.assert(c != null, "Component cannot be null");
+
+        const oldLength = this.components.length;
+
+        this.components.push(c);
+
+        this.assertClassInvariant();
+        // postcondition
+        MethodFailedException.assert(this.components.length === oldLength + 1, "Postcondition failed: length did not increase");
     }
 
-    public remove(i: number) {
-        throw new Error("needs implementation or deletion");
-    }
+    public remove(i: number): void {
+        // precondition
+        IllegalArgumentException.assert(i >= 0 && i < this.components.length, "Index out of bounds");
 
-    public concat(other: Name): void {
-        throw new Error("needs implementation or deletion");
+        const oldLength = this.components.length;
+
+        this.components.splice(i, 1);
+
+        this.assertClassInvariant();
+        // postcondition
+        MethodFailedException.assert(this.components.length === oldLength - 1, "Postcondition failed: length did not decrease");
     }
 }

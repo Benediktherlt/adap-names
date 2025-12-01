@@ -1,5 +1,6 @@
 import { Name } from "../names/Name";
 import { Directory } from "./Directory";
+import { IllegalArgumentException } from "../common/IllegalArgumentException";
 
 export class Node {
 
@@ -7,8 +8,12 @@ export class Node {
     protected parentNode: Directory;
 
     constructor(bn: string, pn: Directory) {
+        // preconditions
+        IllegalArgumentException.assert(bn != null && bn !== "", "basename must not be null or empty");
+        IllegalArgumentException.assert(pn != null, "parent directory must not be null");
+
         this.doSetBaseName(bn);
-        this.parentNode = pn; // why oh why do I have to set this
+        this.parentNode = pn; 
         this.initialize(pn);
     }
 
@@ -18,6 +23,9 @@ export class Node {
     }
 
     public move(to: Directory): void {
+        // precondition
+        IllegalArgumentException.assert(to != null, "target directory must not be null");
+
         this.parentNode.removeChildNode(this);
         to.addChildNode(this);
         this.parentNode = to;
@@ -38,6 +46,8 @@ export class Node {
     }
 
     public rename(bn: string): void {
+        // precondition
+        IllegalArgumentException.assert(bn != null && bn !== "", "basename must not be null or empty");
         this.doSetBaseName(bn);
     }
 

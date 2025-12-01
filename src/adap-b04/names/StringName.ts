@@ -1,6 +1,9 @@
 import { DEFAULT_DELIMITER, ESCAPE_CHARACTER } from "../common/Printable";
 import { Name } from "./Name";
 import { AbstractName } from "./AbstractName";
+import { IllegalArgumentException } from "../common/IllegalArgumentException";
+import { InvalidStateException } from "../common/InvalidStateException";
+import { MethodFailedException } from "../common/MethodFailedException";
 
 export class StringName extends AbstractName {
 
@@ -8,64 +11,109 @@ export class StringName extends AbstractName {
     protected noComponents: number = 0;
 
     constructor(source: string, delimiter?: string) {
-        super();
-        throw new Error("needs implementation or deletion");
+        super(delimiter);
+        // precondition
+        IllegalArgumentException.assert(source != null, "Source cannot be null");
+        
+        this.name = source;
+        this.updateComponentCount();
+        this.assertClassInvariant();
     }
 
     public clone(): Name {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public asString(delimiter: string = this.delimiter): string {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public asDataString(): string {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public isEqual(other: Name): boolean {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public getHashCode(): number {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public isEmpty(): boolean {
-        throw new Error("needs implementation or deletion");
-    }
-
-    public getDelimiterCharacter(): string {
-        throw new Error("needs implementation or deletion");
+        return new StringName(this.name, this.delimiter);
     }
 
     public getNoComponents(): number {
-        throw new Error("needs implementation or deletion");
+        return this.noComponents;
     }
 
     public getComponent(i: number): string {
-        throw new Error("needs implementation or deletion");
+        // precondition
+        IllegalArgumentException.assert(i >= 0 && i < this.noComponents, "Index out of bounds");
+
+        const components = this.getComponentsAsArray();
+        return components[i];
     }
 
-    public setComponent(i: number, c: string) {
-        throw new Error("needs implementation or deletion");
+    public setComponent(i: number, c: string): void {
+        // precondition
+        IllegalArgumentException.assert(i >= 0 && i < this.noComponents, "Index out of bounds");
+        IllegalArgumentException.assert(c != null, "Component cannot be null");
+
+        const components = this.getComponentsAsArray();
+        components[i] = c;
+        this.name = components.join(this.delimiter);
+        
+        // count doesn't change, but verify invariant
+        this.assertClassInvariant();
     }
 
-    public insert(i: number, c: string) {
-        throw new Error("needs implementation or deletion");
+    public insert(i: number, c: string): void {
+        // precondition: allow i == noComponents (append)
+        IllegalArgumentException.assert(i >= 0 && i <= this.noComponents, "Index out of bounds");
+        IllegalArgumentException.assert(c != null, "Component cannot be null");
+
+        const oldLength = this.noComponents;
+
+        const components = this.getComponentsAsArray();
+        components.splice(i, 0, c);
+        this.name = components.join(this.delimiter);
+        this.updateComponentCount();
+
+        this.assertClassInvariant();
+        // postcondition
+        MethodFailedException.assert(this.noComponents === oldLength + 1, "Postcondition failed: length did not increase");
     }
 
-    public append(c: string) {
-        throw new Error("needs implementation or deletion");
+    public append(c: string): void {
+        // precondition
+        IllegalArgumentException.assert(c != null, "Component cannot be null");
+
+        const oldLength = this.noComponents;
+
+        if (this.isEmpty()) {
+            this.name = c;
+        } else {
+            this.name += this.delimiter + c;
+        }
+        this.updateComponentCount();
+
+        this.assertClassInvariant();
+        // postcondition
+        MethodFailedException.assert(this.noComponents === oldLength + 1, "Postcondition failed: length did not increase");
     }
 
-    public remove(i: number) {
-        throw new Error("needs implementation or deletion");
+    public remove(i: number): void {
+        // precondition
+        IllegalArgumentException.assert(i >= 0 && i < this.noComponents, "Index out of bounds");
+
+        const oldLength = this.noComponents;
+
+        const components = this.getComponentsAsArray();
+        components.splice(i, 1);
+        this.name = components.join(this.delimiter);
+        this.updateComponentCount();
+
+        this.assertClassInvariant();
+        // postcondition
+        MethodFailedException.assert(this.noComponents === oldLength - 1, "Postcondition failed: length did not decrease");
     }
 
-    public concat(other: Name): void {
-        throw new Error("needs implementation or deletion");
+    // Helper methods
+    private getComponentsAsArray(): string[] {
+        if (this.name === "") {
+            return [];
+        }
+        const regex = new RegExp(`(?<!\\\\)${this.delimiter.replace('.', '\\.')}`);
+        return this.name.split(regex);
     }
 
+    private updateComponentCount(): void {
+        if (this.name === "") {
+            this.noComponents = 0;
+        } else {
+            this.noComponents = this.getComponentsAsArray().length;
+        }
+    }
 }
