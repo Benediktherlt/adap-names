@@ -1,5 +1,6 @@
 import { IllegalArgumentException } from "../common/IllegalArgumentException";
 import { InvalidStateException } from "../common/InvalidStateException";
+import { ServiceFailureException } from "../common/ServiceFailureException";
 
 import { Name } from "../names/Name";
 import { Directory } from "./Directory";
@@ -33,7 +34,10 @@ export class Node {
     }
 
     public getBaseName(): string {
-        return this.doGetBaseName();
+        const bn = this.doGetBaseName();
+        // This catches the fault in BuggyFile, which secretly returns "".
+        InvalidStateException.assert(bn !== "" && bn != null, "Invalid state: Base name is empty or null");
+        return bn;
     }
 
     protected doGetBaseName(): string {
@@ -57,7 +61,18 @@ export class Node {
      * @param bn basename of node being searched for
      */
     public findNodes(bn: string): Set<Node> {
-        throw new Error("needs implementation or deletion");
+        const result = new Set<Node>();
+        
+        try {
+            if (this.getBaseName() === bn) {
+                result.add(this);
+            }
+        } catch (e) {
+            // let the error bubble up 
+            throw e;
+        }
+
+        return result;
     }
 
 }

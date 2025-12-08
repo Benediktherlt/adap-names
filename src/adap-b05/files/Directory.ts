@@ -20,4 +20,21 @@ export class Directory extends Node {
         this.childNodes.delete(cn); // Yikes! Should have been called remove
     }
 
+    public findNodes(bn: string): Set<Node> {
+        // 1. Check self via super implementation
+        const result = super.findNodes(bn);
+
+        // 2. Recursively check all children
+        this.childNodes.forEach((child) => {
+            // recursion step
+            const childResults = child.findNodes(bn);
+            // merge results
+            childResults.forEach((foundNode) => {
+                result.add(foundNode);
+            });
+        });
+
+        return result;
+    }
+
 }

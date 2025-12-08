@@ -1,6 +1,7 @@
 import { Node } from "./Node";
 import { Directory } from "./Directory";
 import { MethodFailedException } from "../common/MethodFailedException";
+import { ServiceFailureException } from "../common/ServiceFailureException";
 
 enum FileState {
     OPEN,
@@ -22,16 +23,27 @@ export class File extends Node {
 
     public read(noBytes: number): Int8Array {
         let result: Int8Array = new Int8Array(noBytes);
-        // do something
-
-        let tries: number = 0;
+        
+        // try to read bytes, with retry logic
         for (let i: number = 0; i < noBytes; i++) {
-            try {
-                result[i] = this.readNextByte();
-            } catch(ex) {
-                tries++;
-                if (ex instanceof MethodFailedException) {
-                    // Oh no! What @todo?!
+            let tries: number = 0;
+            let success: boolean = false;
+
+            while (tries < 3 && !success) {
+                try {
+                    result[i] = this.readNextByte();
+                    success = true; // if we reach here, reading worked
+                } catch(ex) {
+                    tries++;
+                    if (ex instanceof MethodFailedException) {
+                        // Transient error, we can retry
+                        if (tries >= 3) {
+                            // escalation
+                            throw new ServiceFailureException("Read failed after 3 attempts", ex);
+                        }
+                    } else {
+                        throw ex;
+                    }
                 }
             }
         }
@@ -40,7 +52,7 @@ export class File extends Node {
     }
 
     protected readNextByte(): number {
-        return 0; // @todo
+        return 0; // stub
     }
 
     public close(): void {

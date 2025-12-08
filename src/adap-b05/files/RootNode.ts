@@ -1,6 +1,9 @@
 import { Name } from "../names/Name";
 import { StringName } from "../names/StringName";
 import { Directory } from "./Directory";
+import { Node } from "./Node";
+import { ServiceFailureException } from "../common/ServiceFailureException";
+import { Exception } from "../common/Exception";
 
 export class RootNode extends Directory {
 
@@ -28,6 +31,24 @@ export class RootNode extends Directory {
 
     protected doSetBaseName(bn: string): void {
         // null operation
+    }
+
+    /**
+     * Service boundary implementation for findNodes.
+     * captures internal errors and escalates them as ServiceFailureException.
+     */
+    public findNodes(bn: string): Set<Node> {
+        try {
+            return super.findNodes(bn);
+        } catch (error) {
+            // according to lecture slides, catch all errors at service boundary
+            // and re-throw as ServiceFailureException (checked exception simulation)
+            if (error instanceof Exception) {
+                throw new ServiceFailureException("Service failed during findNodes lookup", error);
+            } else {
+                throw new ServiceFailureException("Service failed with unknown error", undefined);
+            }
+        }
     }
 
 }
